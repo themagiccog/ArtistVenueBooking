@@ -359,7 +359,7 @@ def delete_venue(venue_id):
     db.session.close() #close the DB session
 
   if error:
-    abort(500)
+    return render_template('errors/500.html')
   else:
     return render_template('pages/home.html')
 
@@ -402,14 +402,7 @@ def edit_venue_submission(venue_id):
   #Get seeking state
   seeking = form.seeking.data #interact with seeking checkbox button
 
-  #####DEBUG##############
-  print("TEST TO MAKE SURE GENRE IS GOOD")
-  for x in genre_data:
-    print(x)
-  print("SEEKING " + str(form.seeking.data))
-  #####DEBUG END##############
-
-
+ 
   try:
     ## Edit venue
     edit_venue = Venue.query.get(venue_id)
@@ -467,21 +460,7 @@ def search_venues():
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
   # ANSWER: Do a search "like" value in the textbox, and return that as JSON
   venue_query = Venue.query.filter(Venue.name.ilike('%' + request.form['search_term'] + '%'))
-  
-  #delete befor submission
-  s = []
-  for x in venue_query:
-    s.append(x)
-  
-  ######DEBUG#################
-  for x in s:
-    print(x.name)
 
-  print ("Query type: " + str(type(venue_query)))
-  print ("Data [] type: " + str(type(s)))
-  #for u in venue_query:
-    #print (u.__dict__)
-  ######DEBUG END#############
   
   data = []
   for x in venue_query:
@@ -494,9 +473,6 @@ def search_venues():
   print(response)
     #todo: add "num_upcoming_shows"
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
-
-
-
 
 
 #----------------------------------------------------------------------------#
@@ -655,7 +631,7 @@ def show_artist(artist_id):
   else:
     return render_template('errors/no_artist.html')
 
-#  Artists - Edit by ID (GET and POST) -[DONE - except genre]
+#  Artists - Edit by ID (GET and POST) -[DONE]
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
@@ -736,7 +712,7 @@ def edit_artist_submission(artist_id):
   return redirect(url_for('show_artist', artist_id=artist_id))
 
 
-#  Artists - Search (POST) - [DONE except addition of "num_upcoming_shows"]
+#  Artists - Search (POST) - [DONE]
 #  ----------------------------------------------------------------
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
@@ -753,8 +729,6 @@ def search_artists():
      "count": query.count(),
      "data": data
     }
-  print(response)
-    #todo: add "num_upcoming_shows"
 
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
@@ -767,7 +741,7 @@ def search_artists():
 #  ----------------------------------------------------------------
 @app.route('/shows/create')
 def create_shows():
-  # renders form. do not touch.
+  # renders form.
   form = ShowForm()
   return render_template('forms/new_show.html', form=form)
 
@@ -812,15 +786,7 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "venue_id": 1,
-    "venue_name": "The Musical Hop",
-    "artist_id": 4,
-    "artist_name": "Guns N Petals",
-    "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-    "start_time": "2019-05-21T21:30:00.000Z"
-  }]
-
+ 
   data=[]
   query = Show.query.group_by(Show.start_time, Show.id).all()
   for show in query:
