@@ -2,7 +2,7 @@
 # Imports
 #----------------------------------------------------------------------------#
 
-import json
+
 import dateutil.parser
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
@@ -28,15 +28,18 @@ db = SQLAlchemy(app)
 # TODO: (DONE) connect to a local postgresql database
 migrate = Migrate(app, db)
 
+####NOTE: I used SQLite to do this project. Database is in folder
+
 #----------------------------------------------------------------------------#
 # Models.
 # Relationship: ARTIST(one)<=======>(many)SHOW(many)<=======>(one)VENUE
 #----------------------------------------------------------------------------#
-
+# Enum Restriction
 genrelist = enum.Enum("genre",GENRE_CHOICES)
-#current_time = "5"
+#Current Time
 current_time = datetime.datetime.now().strftime('%Y-%m-%d')
 
+# Artist class/model
 class Artist(db.Model):
     __tablename__ = 'artist'
 
@@ -59,7 +62,7 @@ class Artist(db.Model):
 
 # TODO (DONE) Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
-
+# Show class/model
 class Show(db.Model):
     __tablename__ = 'show'
 
@@ -68,7 +71,7 @@ class Show(db.Model):
     venue_id= db.Column( db.Integer, db.ForeignKey('venue.id'), nullable=False)
     start_time= db.Column(db.Integer, nullable=False) #make this date later: db.Column(db.DateTime, nullable=False)
 
-
+# Venue class/model
 class Venue(db.Model):
     __tablename__ = 'venue'
 
@@ -134,13 +137,13 @@ def index():
 #----------------------------------------------------------------------------#
 # VENUE - Controllers
 #----------------------------------------------------------------------------#
-#  Venues - Create (GET and POST)
+#  Venues - Create (GET and POST) - [DONE]
 #  ----------------------------------------------------------------
 
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
   form = VenueForm()
-  
+
   return render_template('forms/new_venue.html', form=form)
 
 @app.route('/venues/create', methods=['POST'])
@@ -160,12 +163,6 @@ def create_venue_submission():
   #Get seeking state
   seeking = form.seeking.data #interact with seeking checkbox button
 
-  #####DEBUG##############
-  print("TEST TO MAKE SURE GENRE IS GOOD")
-  for x in genre_data:
-    print(x)
-  print("SEEKING " + str(form.seeking.data))
-  #####DEBUG END##############
 
 
   try:
@@ -217,33 +214,26 @@ def create_venue_submission():
   #undo comment: return render_template('pages/home.html')
 
 
-#  Venues - ALL
+#  Venues - ALL [DONE]
 #  ----------------------------------------------------------------
 @app.route('/venues')
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  
-  # current_show_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+
   city_and_state = ''
   data=[]
-  venue_query = Venue.query.group_by(Venue.id, Venue.city, Venue.state).all()
-
-  #use enumerate function to make the list countable
-  for count, venue in enumerate(venue_query):
-    #uncomment below when ready for time/date
-    #upcoming_shows = venue.shows.filter(Show.start_time > current_show_time).all()
-    upcoming_shows = venue.shows
-    no_of_shows = len(upcoming_shows) #if no shows created, it returns 0
-    print("Venue " + str(count+1) + " : " + str(venue.name))
-    print("Venue Shows : " + str(no_of_shows))
-    print("Venue City and State : " + str(venue.city) + str(venue.state))
+  venue_query = Venue.query.all()
+  for venue in venue_query:
+    
+    upcoming_shows = Show.query.filter_by(venue_id=venue.id).all()
 
     if city_and_state == str(venue.city) + str(venue.state):
       data[len(data) - 1]["venues"].append({
         "id": venue.id,
         "name": venue.name,
-        "num_upcoming_shows": len(upcoming_shows)
+        "num_upcoming_shows": upcoming_shows.count(upcoming_shows)
       })
 
     else:
@@ -254,13 +244,13 @@ def venues():
         "venues": [{
           "id": venue.id,
           "name": venue.name,
-          "num_upcoming_shows": len(upcoming_shows)
+          "num_upcoming_shows": upcoming_shows.count(upcoming_shows)
         }]
       })
 
   return render_template('pages/venues.html', areas=data)
 
-#  Venues - By ID
+#  Venues - By ID [DONE]
 #  ----------------------------------------------------------------
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
@@ -334,7 +324,7 @@ def show_venue(venue_id):
   else:
     return render_template('errors/no_venue.html')
 
-#  Venues - DELETE
+#  Venues - DELETE -[DONE]
 #  ----------------------------------------------------------------
 
 @app.route('/venues/<venue_id>', methods=['POST'])
@@ -376,7 +366,7 @@ def delete_venue(venue_id):
 
   #return redirect(url_for('show_venue', venue_id=venue_id))
 
-#  Venues - Edit By ID (GET and POST)
+#  Venues - Edit By ID (GET and POST) - [DONE]
 #  ----------------------------------------------------------------
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
@@ -467,7 +457,7 @@ def edit_venue_submission(venue_id):
   return redirect(url_for('show_venue', venue_id=venue_id))
 
 
-#  Venues - Search
+#  Venues - Search -[DONE]
 #  ----------------------------------------------------------------
 
 @app.route('/venues/search', methods=['POST'])
